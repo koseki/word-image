@@ -5,12 +5,23 @@ import yargs from 'yargs';
 import fs from 'fs-extra';
 import path from "path";
 
+import { generateStableDiffusionImage } from "./diffusion";
+import { getOutputFile } from "./utils";
+
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 class Main {
 
+  private lang: string = "en";
+  private debug: boolean = false;
+  private imageGenerator: string = "dall-e";
+
   private openaiConfig: Configuration | undefined;
 
-  async run(lang: string, file: string, word: string, debug: boolean = false) {
+  async run(lang: string, file: string, word: string, imageGenerator: string, debug: boolean = false) {
+    this.lang = lang;
+    this.debug = debug;
+    this.imageGenerator = imageGenerator;
+
     if (file && word) {
       console.log("Can't specify both file and word");
       return;
@@ -31,18 +42,19 @@ class Main {
     if (file) {
       const wordlist = await fs.readFile(file, "utf-8");
       const words = wordlist.split(/\s+/).map((w) => w.trim()).filter((w) => w.length > 0);
-      for (const word of words) {
-        await this.generateImage(word, lang, debug);
+      for (const wordItem of words) {
+        await this.generateImage(wordItem);
         await sleep(500);
       }
     } else {
-      await this.generateImage(word, lang, debug);
+      await this.generateImage(word);
     }
   }
 
-  async generateImage(word: string, lang: string, debug: boolean = false) {
+  async generateImage(word: string) {
     console.log(`Word: ${word}`);
-    const template = await fs.readFile(path.join(__dirname, `../prompts/${lang}.txt`), "utf-8");
+    console.log('Generating an image prompt using GPT3.5 turbo...')
+    const template = await fs.readFile(path.join(__dirname, `../prompts/${this.lang}.txt`), "utf-8");
     let prompt = template.replace(/\{word\}/g, word);
 
     const openai = new OpenAIApi(this.openaiConfig);
@@ -61,11 +73,19 @@ class Main {
     }
     console.log(message);
 
-    const wordEncoded = encodeURIComponent(word);
-    const sentenceFile = await this.getOutputFile(wordEncoded, 'txt');
+    const sentenceFile = await getOutputFile(word, 'txt');
     await fs.writeFile(sentenceFile, message);
 
-    console.log("Generating image...");
+    if (this.imageGenerator == 'dall-e') {
+      console.log("Generating image using DALL-E...");
+      await this.generateDallEImage(openai, word, message);
+    } else if (this.imageGenerator == 'stable-diffusion') {
+      console.log("Generating image using Stable Diffusion...");
+      await generateStableDiffusionImage(word, message, this.debug);
+    }
+  }
+
+  async generateDallEImage(openai: OpenAIApi, word: string, message: string) {
 
     const response = await openai.createImage({
       prompt: message,
@@ -78,24 +98,12 @@ class Main {
       console.log(response.data);
       return;
     }
-    if (debug) {
+    if (this.debug) {
       console.log(imageURL);
     }
     const res = await axios.get(imageURL, {responseType: 'arraybuffer'});
-    const imageFile = await this.getOutputFile(wordEncoded, 'png');
+    const imageFile = await getOutputFile(word, 'png');
     fs.writeFileSync(imageFile, Buffer.from(res.data), 'binary');
-  }
-
-
-
-  async getOutputFile(word: string, ext: string) {
-    let sentenceFile = path.join(__dirname, `../data/${word}.${ext}`);
-    let count = 0;
-    while (await fs.pathExists(sentenceFile)) {
-      count++;
-      sentenceFile = path.join(__dirname, `../data/${word}-${count}.${ext}`);
-    }
-    return sentenceFile;
   }
 }
 
@@ -111,6 +119,13 @@ class Main {
       describe: 'language that select a prompt template',
       type: 'string'
     })
+    .option('image', {
+      demandOption: true,
+      default: 'dall-e',
+      choices: ['stable-diffusion', 'dall-e'],
+      describe: 'image generator',
+      type: 'string'
+    })
     .option('f', {
       alias: 'file',
       describe: 'words file',
@@ -119,5 +134,5 @@ class Main {
     .help()
     .argv
   const main = new Main();
-  await main.run(argv.lang, argv.file, argv.word, argv.debug);
+  await main.run(argv.lang, argv.file, argv.word, argv.image, argv.debug);
 })();
