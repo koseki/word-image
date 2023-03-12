@@ -1,2 +1,10 @@
-You are English teaching assistant.
-Please create an example sentence which express the meaning of the word "{word}".
+Please create an example sentence using a word I have indicated.
+The sentence must convey the meaning of the word well.
+The sentence must depict a specific situation in detail.
+Output only the sentence, nothing else.
+
+Word: borehole
+Sentence: The farmer installed a borehole to provide irrigation for his crops during the dry season.
+
+Word: {word}
+Sentence: 
