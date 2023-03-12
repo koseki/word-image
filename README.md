@@ -9,7 +9,11 @@ Generate an image from a single word. To generate pictures for the dictionary.
 $ npm install
 $ npm build
 $ mkdir data
-$ node ./dest/index.js --image dall-e [word]
+
+$ export OPENAI_API_KEY=...
+$ export DIFFUSIOn_API_KEY=...
+
+$ node ./dest/index.js [word]
 ```
 
 ## Options
