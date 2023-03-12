@@ -2,6 +2,9 @@
 
 Generate an image from a single word. To generate pictures for the dictionary.
 
+```
+[word] --> GPT --> [image prompt] --> DALL-E, Stable Difusion --> [image]
+```
 
 ## Usage
 
@@ -20,7 +23,7 @@ $ node ./dest/index.js [word]
 
 ```
 --file [word list file]
---image {s,stable-diffusion,d,dall-e}
+--image {stable-diffusion,dall-e,s,d}
 --lang {en,ja}
 --debug
 --help
