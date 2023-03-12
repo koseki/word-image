@@ -28,7 +28,7 @@ $ node ./dest/index.js --image dall-e [word]
 $ node ./dest/index.js clavicle
 ```
 
-`data/clavicle.png`
+`data/clavicle.png`<br>
 ![clavicle](./docs/example/clavicle.png)
 
 `data/clavicle.txt`
@@ -42,8 +42,8 @@ The doctor examined the x-ray and found that the patient had fractured their cla
 $ node ./dest/index.js megalomaniac
 ```
 
-`data/megalomaniac.png`
-![clavicle](./docs/example/clavicle.png)
+`data/megalomaniac.png`<br>
+![megalomaniac](./docs/example/megalomaniac.png)
 
 `data/megalomaniac.txt`
 ```
