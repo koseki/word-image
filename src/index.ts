@@ -6,7 +6,7 @@ import fs from 'fs-extra';
 import path from "path";
 
 class Main {
-  async run(lang: string, word: string) {
+  async run(lang: string, word: string, debug: boolean = false) {
     const template = await fs.readFile(path.join(__dirname, `../prompts/${lang}.txt`), "utf-8");
     let prompt = template.replace(/\{word\}/g, word);
 
@@ -41,10 +41,13 @@ class Main {
       size: "512x512"
     });
     const imageURL = response.data.data[0].url;
-    console.log(imageURL);
     if (!imageURL) {
       console.log("Can't get image URL");
+      console.log(response.data);
       return;
+    }
+    if (debug) {
+      console.log(imageURL);
     }
     const res = await axios.get(imageURL, {responseType: 'arraybuffer'});
     const imageFile = await this.getOutputFile(wordEncoded, 'png');
