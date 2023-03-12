@@ -67,8 +67,8 @@ export async function generateStableDiffusionImage(word: string, prompt: string,
     width: 512,
     height: 512,
     samples: 1,
-    cfgScale: 13,
-    steps: 25,
+    cfgScale: 7,
+    steps: 50,
     sampler: Generation.DiffusionSampler.SAMPLER_K_DPMPP_2M,
   });
   const generationResponse = await executeGenerationRequest(client, request, metadata)

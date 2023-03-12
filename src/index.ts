@@ -20,7 +20,16 @@ class Main {
   async run(lang: string, file: string, word: string, imageGenerator: string, debug: boolean = false) {
     this.lang = lang;
     this.debug = debug;
-    this.imageGenerator = imageGenerator;
+
+    const imageGeneratorShort: { [key:string]: string } = {
+      s: 'stable-diffusion',
+      d: 'dall-e'
+    }
+    if (imageGenerator in imageGeneratorShort) {
+      this.imageGenerator = imageGeneratorShort[imageGenerator];
+    } else {
+      this.imageGenerator = imageGenerator;
+    }
 
     if (file && word) {
       console.log("Can't specify both file and word");
@@ -43,7 +52,11 @@ class Main {
       const wordlist = await fs.readFile(file, "utf-8");
       const words = wordlist.split(/\s+/).map((w) => w.trim()).filter((w) => w.length > 0);
       for (const wordItem of words) {
-        await this.generateImage(wordItem);
+        try {
+          await this.generateImage(wordItem);
+        } catch (e) {
+          console.log(e);
+        }
         await sleep(500);
       }
     } else {
@@ -60,7 +73,7 @@ class Main {
     const openai = new OpenAIApi(this.openaiConfig);
 
     const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
+      model: 'gpt-3.5-turbo',
       messages: [{
         role: "user",
         content: prompt
@@ -73,9 +86,6 @@ class Main {
     }
     console.log(message);
 
-    const sentenceFile = await getOutputFile(word, 'txt');
-    await fs.writeFile(sentenceFile, message);
-
     if (this.imageGenerator == 'dall-e') {
       console.log("Generating image using DALL-E...");
       await this.generateDallEImage(openai, word, message);
@@ -83,6 +93,10 @@ class Main {
       console.log("Generating image using Stable Diffusion...");
       await generateStableDiffusionImage(word, message, this.debug);
     }
+
+    let promptText = `gpt-3.5-turbo\n${this.imageGenerator}\n${message}\n`;
+    const sentenceFile = await getOutputFile(word, 'txt');
+    await fs.writeFile(sentenceFile, promptText);
   }
 
   async generateDallEImage(openai: OpenAIApi, word: string, message: string) {
@@ -122,7 +136,7 @@ class Main {
     .option('image', {
       demandOption: true,
       default: 'dall-e',
-      choices: ['stable-diffusion', 'dall-e'],
+      choices: ['stable-diffusion', 'dall-e', 's', 'd'],
       describe: 'image generator',
       type: 'string'
     })
