@@ -22,7 +22,9 @@ $ node ./dest/index.js --image dall-e [word]
 --help
 ```
 
-## Example
+## Examples
+
+### Word: clavicle
 
 ```
 $ node ./dest/index.js clavicle
@@ -37,6 +39,8 @@ gpt-3.5-turbo
 dall-e
 The doctor examined the x-ray and found that the patient had fractured their clavicle in a skiing accident.
 ```
+
+### Word: megalomaniac
 
 ```
 $ node ./dest/index.js megalomaniac
